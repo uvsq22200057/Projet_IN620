@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 
 class Automata:
@@ -10,7 +10,7 @@ class Automata:
         return self.transitions.get((left, center, right), self.default_state)
 
 
-class Configuration:
+class ConfigurationAutomata:
     def __init__(self, states: List[int], automata: Automata):
         default = automata.default_state
         if states[0] != default:
@@ -46,7 +46,7 @@ class Configuration:
         print(" ".join(str(s) for s in self.states))
 
 
-def read_transitions(file: str) -> Dict[tuple, int]:
+def read_automata(file: str) -> Dict[tuple, int]:
     transitions = {}
     with open(file, 'r') as f:
         for line in f:
@@ -57,17 +57,104 @@ def read_transitions(file: str) -> Dict[tuple, int]:
     return transitions
 
 
+
+class ConfigurationTuring:
+    def __init__(self, tape: List[str], head: int, state: str):
+        self.tape = tape
+        self.head = head
+        self.state = state
+
+    def __str__(self):
+        tape_str = ''.join(self.tape)
+        pointer = ' ' * self.head + '^'
+        return f"Tape: {tape_str}\n       {pointer}\nState: {self.state}"
+
+
+class TuringMachine:
+    def __init__(self, transitions: Dict[Tuple[str, str], Tuple[str, str, str]],
+                 initial_state: str, accept_states: set, default_symbol: str = "-"):
+        self.transitions = transitions
+        self.initial_state = initial_state
+        self.accept_states = accept_states
+        self.default = default_symbol
+
+    def step(self, config: ConfigurationTuring) -> ConfigurationTuring:
+        symbol = config.tape[config.head] if 0 <= config.head < len(config.tape) else self.default
+
+        if (config.state, symbol) not in self.transitions:
+            config.state = "REJECT"
+            return config
+
+        new_state, new_symbol, move = self.transitions[(config.state, symbol)]
+
+        # Ecrire le nouveau symbole
+        if 0 <= config.head < len(config.tape):
+            config.tape[config.head] = new_symbol
+        else:
+            if config.head < 0:
+                config.tape.insert(0, new_symbol)
+                config.head = 0
+            else:
+                config.tape.append(new_symbol)
+
+        # Se déplacer sur le ruban
+        if move == "R":
+            config.head += 1
+        elif move == "L":
+            config.head -= 1
+
+        if config.head < 0:
+            config.tape.insert(0, self.default)
+            config.head = 0
+        elif config.head >= len(config.tape):
+            config.tape.append(self.default)
+
+        config.state = new_state
+
+        return config
+
+    def is_accepting(self, config: ConfigurationTuring) -> bool:
+        return config.state in self.accept_states
+
+
+def read_turing(file: str):
+    transitions = {}
+    initial_state = None
+    accept_states = set()
+
+    with open(file, "r") as f:
+        lines = [line.strip() for line in f if line.strip()]
+
+    for line in lines:
+        if line.startswith("accept"):
+            accept_states.update(line.split()[1:])
+        else:
+            left, right = [part.strip() for part in line.split(":")]
+            state, symbol = [x.strip() for x in left.split(",")]
+            new_state, new_symbol, move = [x.strip() for x in right.split(",")]
+
+            # Le premier état est l'état initial
+            if initial_state is None:
+                initial_state = state
+
+            transitions[(state, symbol)] = (new_state, new_symbol, move)
+
+    return TuringMachine(transitions, initial_state, accept_states)
+
+
+
+
 def main():
     # Exemple : configuration initiale (liste d'entiers)
-    config_init = [0, 0, 0, 1, 0, 0, 0]
+    config_init = [1, 0, 0, 0, 0, 0, 0]
     steps = 10
 
     # Exemple avec le fichier
-    file = "runner.txt"
-    transitions = read_transitions(file)
+    file = "automata/runner2.txt"
+    transitions = read_automata(file)
 
     automata = Automata(transitions)
-    config = Configuration(config_init, automata)
+    config = ConfigurationAutomata(config_init, automata)
 
     print("Simulation :")
     for _ in range(steps):

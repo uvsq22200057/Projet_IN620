@@ -1,0 +1,4 @@
+q0,0 : q1,1,R
+q1,1 : qf,1,S
+
+accept qf
