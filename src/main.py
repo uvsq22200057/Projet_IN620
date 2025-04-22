@@ -1,7 +1,7 @@
 from typing import Dict, List, Tuple
 
 
-class Automata:
+class Automaton:
     def __init__(self, transitions: Dict[tuple, int], default_state=-1):
         self.transitions = transitions
         self.default_state = default_state
@@ -10,20 +10,20 @@ class Automata:
         return self.transitions.get((left, center, right), self.default_state)
 
 
-class ConfigurationAutomata:
-    def __init__(self, states: List[int], automata: Automata):
-        default = automata.default_state
+class ConfigurationAutomaton:
+    def __init__(self, states: List[int], automaton: Automaton):
+        default = automaton.default_state
         if states[0] != default:
             states = [default] + states
         if states[-1] != default:
             states = states + [default]
         self.states = states
-        self.automata = automata
+        self.automaton = automaton
 
     def next_step(self):
         states = self.states
-        automata = self.automata
-        default = automata.default_state
+        automaton = self.automaton
+        default = automaton.default_state
 
         states = [default] + states + [default]
 
@@ -32,7 +32,7 @@ class ConfigurationAutomata:
             left = states[i - 1] if i - 1 >= 0 else default
             center = states[i]
             right = states[i + 1] if i + 1 < len(states) else default
-            new.append(automata.transition(left, center, right))
+            new.append(automaton.transition(left, center, right))
 
         # On garde au maximum un seul 'default' à chaque bord
         while len(new) > 2 and new[0] == default and new[1] == default:
@@ -46,7 +46,7 @@ class ConfigurationAutomata:
         print(" ".join(str(s) for s in self.states))
 
 
-def read_automata(file: str) -> Dict[tuple, int]:
+def read_automaton(file: str) -> Dict[tuple, int]:
     transitions = {}
     with open(file, 'r') as f:
         for line in f:
@@ -151,10 +151,10 @@ def main():
 
     # Exemple avec le fichier
     file = "automata/runner2.txt"
-    transitions = read_automata(file)
+    transitions = read_automaton(file)
 
-    automata = Automata(transitions)
-    config = ConfigurationAutomata(config_init, automata)
+    automaton = Automaton(transitions)
+    config = ConfigurationAutomaton(config_init, automaton)
 
     print("Simulation :")
     for _ in range(steps):
