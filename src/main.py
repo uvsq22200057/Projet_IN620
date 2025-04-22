@@ -1,111 +1,83 @@
-class Cell:
-    """A class to represent a cell in a cellular automata"""
-    def __init__(self, state={0,1}, left=None, right=None):
-        self.state = state
-        self.left = left
-        self.right = right
+from typing import Dict, List
 
-    def get_state(self):
-        return self.state
-    
-    def get_neighbors(self):
-        """Return the left and right neighbors of the cell"""
-        return self.left, self.right
-    
-    def set_state(self):
-        self.state = True if self.state == False else False
 
-    def set_state2(self, state: bool):
-        self.state = state
-        
 class Automata:
-    """A class to represent a cellular automata"""
-    def __init__(self, cells=None, transitions=None):
-        self.cells = [] # a list of cells
-        self.transitions = transitions # a dictionary of transitions {(s_left, s_center, s_right): s_next, ...}
+    def __init__(self, transitions: Dict[tuple, int], default_state=-1):
+        self.transitions = transitions
+        self.default_state = default_state
 
-        if cells is not None:
-            self.set_cells(cells)
+    def transition(self, left, center, right):
+        return self.transitions.get((left, center, right), self.default_state)
 
-    def add_cell(self, cell):
-        self.cells.append(cell)
 
-    def set_cells(self, str_cells):
-        for cell in str_cells:
-            if cell == "0":
-                cell = Cell(0)
-            elif cell == "1":
-                cell = Cell(1)
-            elif cell == "-1":
-                cell = Cell(-1)
-            else:
-                raise ValueError("Invalid cell state")
-            # Add the cell to the automata
-            self.add_cell(cell)
-
-        for i, cell in enumerate(self.cells):
-            if i == 0: # first cell
-                cell.left = None
-            else:
-                cell.left = self.cells[i-1]
-
-            if i == len(self.cells) - 1: # last cell
-                cell.right = None
-            else:
-                cell.right = self.cells[i+1]
-
-    def set_transitions(self, *args):
-        if len(args) == 1:
-            file = args[0]
-            with open(file, 'r') as f:
-                lines = f.readlines()
-                for line in lines:
-                    line = line.strip()
-                    if line.startswith("#"):
-                        continue
-                    parts = line.split(",")
-                    if len(parts) == 4:
-                        self.transitions[(int(parts[0]), int(parts[1]), int(parts[2]))] = int(parts[3])
-                    else:
-                        raise ValueError("Invalid transition format")
-                    
-    def get_transitions(self):
-        return self.transitions 
-
-    def print_cells(self):
-        for i, cell in enumerate(self.cells):
-            print(f"Cell {i} — state: {cell.get_state()}")
-
-            left, right = cell.get_neighbors()
-
-            if left is not None:
-                print(f"  Left neighbor (Cell {i-1}) state: {left.get_state()}")
-            else:
-                print("  Left neighbor: None")
-
-            if right is not None:
-                print(f"  Right neighbor (Cell {i+1}) state: {right.get_state()}")
-            else:
-                print("  Right neighbor: None")
-
-            print("-" * 30)
-
-        
 class Configuration:
-    """A class to represent a configuration of a cellular automata"""
-    def __init__(self, automata_transitions:dict, cells:list[{-1,0,1}], t:int):
-        self.automata = automata_transitions # a dictionary of transitions {(s_left, s_center, s_right): s_next, ...}
-        self.cells = cells # a list of cells
-        self.time = t # the time step
+    def __init__(self, states: List[int], automata: Automata):
+        default = automata.default_state
+        if states[0] != default:
+            states = [default] + states
+        if states[-1] != default:
+            states = states + [default]
+        self.states = states
+        self.automata = automata
 
-    def config(self, t, mot):
-        pass
+    def next_step(self):
+        states = self.states
+        automata = self.automata
+        default = automata.default_state
+
+        # On ajoute une marge si les bords ne sont pas déjà du défaut
+        if states[0] != default:
+            states = [default] + states
+        if states[-1] != default:
+            states = states + [default]
+
+        new = []
+        for i in range(len(states)):
+            left = states[i - 1] if i - 1 >= 0 else default
+            center = states[i]
+            right = states[i + 1] if i + 1 < len(states) else default
+            new.append(automata.transition(left, center, right))
+
+        # On garde au maximum un seul 'default' à chaque bord
+        while len(new) > 2 and new[0] == default and new[1] == default:
+            new.pop(0)
+        while len(new) > 2 and new[-1] == default and new[-2] == default:
+            new.pop()
+
+        self.states = new
+
+    def print_config(self):
+        print(" ".join(str(s) for s in self.states))
+
+
+def read_transitions(file: str) -> Dict[tuple, int]:
+    transitions = {}
+    with open(file, 'r') as f:
+        for line in f:
+            if ":" in line:
+                left, new_state = line.strip().split(":")
+                l, c, r = map(int, left.strip().split(","))
+                transitions[(l, c, r)] = int(new_state.strip())
+    return transitions
+
 
 def main():
-    config_initiale = "011001"
-    automata = Automata(config_initiale)
-    
-    automata.print_cells()
+    # Exemple : configuration initiale (liste d'entiers)
+    config_init = [0, 0, 0, 1, 0, 0, 0]
+    steps = 10
+
+    # Exemple avec la règle 110 dans un fichier
+    file = "regle110.txt"
+    transitions = read_transitions(file)
+
+    automata = Automata(transitions)
+    config = Configuration(config_init, automata)
+
+    print("Simulation :")
+    for _ in range(steps):
+        config.print_config()
+        config.next_step()
+
 
 if __name__ == "__main__":
     main()
