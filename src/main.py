@@ -25,11 +25,7 @@ class Configuration:
         automata = self.automata
         default = automata.default_state
 
-        # On ajoute une marge si les bords ne sont pas déjà du défaut
-        if states[0] != default:
-            states = [default] + states
-        if states[-1] != default:
-            states = states + [default]
+        states = [default] + states + [default]
 
         new = []
         for i in range(len(states)):
@@ -66,8 +62,8 @@ def main():
     config_init = [0, 0, 0, 1, 0, 0, 0]
     steps = 10
 
-    # Exemple avec la règle 110 dans un fichier
-    file = "regle110.txt"
+    # Exemple avec le fichier
+    file = "runner.txt"
     transitions = read_transitions(file)
 
     automata = Automata(transitions)
