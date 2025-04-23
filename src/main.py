@@ -20,19 +20,30 @@ class ConfigurationAutomaton:
         self.states = states
         self.automaton = automaton
 
-    def next_step(self):
+    def next_step(self) -> Tuple[List[int], bool, List[Tuple[int, int, int]]]:
         states = self.states
         automaton = self.automaton
         default = automaton.default_state
 
         states = [default] + states + [default]
-
         new = []
+        used_transitions = []
+        changed = False
+
         for i in range(len(states)):
             left = states[i - 1] if i - 1 >= 0 else default
             center = states[i]
             right = states[i + 1] if i + 1 < len(states) else default
-            new.append(automaton.transition(left, center, right))
+
+            old = center
+            new_state = automaton.transition(left, center, right)
+            new.append(new_state)
+
+            if new_state != center:
+                changed = True
+
+            if (left, center, right) in automaton.transitions:
+                used_transitions.append((left, center, right))
 
         # On garde au maximum un seul 'default' à chaque bord
         while len(new) > 2 and new[0] == default and new[1] == default:
@@ -41,12 +52,13 @@ class ConfigurationAutomaton:
             new.pop()
 
         self.states = new
+        return new, changed, used_transitions
 
     def print_config(self):
         print(" ".join(str(s) for s in self.states))
 
 
-def read_automaton(file: str) -> Dict[tuple, int]:
+def read_automaton(file: str) -> Automaton:
     transitions = {}
     with open(file, 'r') as f:
         for line in f:
@@ -54,7 +66,29 @@ def read_automaton(file: str) -> Dict[tuple, int]:
                 left, new_state = line.strip().split(":")
                 l, c, r = map(int, left.strip().split(","))
                 transitions[(l, c, r)] = int(new_state.strip())
-    return transitions
+    return Automaton(transitions)
+
+
+def simulate_automaton(config: ConfigurationAutomaton,
+                       max_steps: int = 10,
+                       stop_on_transition: Tuple[int, int, int] = None,
+                       stop_on_stable: bool = False) -> None:
+
+    for step in range(max_steps):
+        print(f"Étape {step}:")
+        config.print_config()
+
+        _, changed, used_transitions = config.next_step()
+
+        if stop_on_transition and stop_on_transition in used_transitions:
+            print(f"Arrêt : transition {stop_on_transition} utilisée à l'étape {step}")
+            break
+
+        if stop_on_stable and not changed:
+            print(f"Arrêt : configuration stable atteinte à l'étape {step}")
+            break
+    else:
+        print("Arrêt : nombre maximal d'étapes atteint")
 
 
 
@@ -142,24 +176,43 @@ def read_turing(file: str):
     return TuringMachine(transitions, initial_state, accept_states)
 
 
+def simulate_turing(machine: TuringMachine, word: str):
+    tape = list(word)
+    head = 0
+    state = machine.initial_state
+    config = ConfigurationTuring(tape, head, state)
+
+    print("Début de la simulation :")
+    print(config)
+
+    while config.state != "REJECT" and not machine.is_accepting(config):
+        config = machine.step(config)
+        print(config)
+
+    if config.state == "REJECT":
+        print("Résultat : REJECT")
+    else:
+        print("Résultat : ACCEPT")
+
 
 
 def main():
-    # Exemple : configuration initiale (liste d'entiers)
+
+    # Automate cellulaire
     config_init = [1, 0, 0, 0, 0, 0, 0]
-    steps = 10
-
-    # Exemple avec le fichier
     file = "automata/runner2.txt"
-    transitions = read_automaton(file)
-
-    automaton = Automaton(transitions)
+    automaton = read_automaton(file)
     config = ConfigurationAutomaton(config_init, automaton)
-
     print("Simulation :")
-    for _ in range(steps):
-        config.print_config()
-        config.next_step()
+    simulate_automaton(config,
+                       max_steps=20,
+                       stop_on_transition=(1, 0, 0),
+                       stop_on_stable=True)
+
+    # Machine de Turing
+    file = "turing/example.txt"
+    machine = read_turing(file)
+    simulate_turing(machine, "1010")
 
 
 if __name__ == "__main__":
