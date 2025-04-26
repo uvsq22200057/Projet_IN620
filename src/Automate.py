@@ -116,19 +116,44 @@ def read_automaton(file: str) -> Automaton:
                 transitions[(l, c, r)] = int(new_state.strip())
     return Automaton(transitions)
 
-def main():
+def main(file: str, step: int = None, transition: Tuple[int, int, int] = None,
+         stable: bool = False) -> None:
     """
     Exemple d'utilisation : lit un automate, initialise une configuration,
     puis lance la simulation.
     """
     # Automate cellulaire
     config_init = [1, 0, 0, 0, 0, 0, 0]
-    file = "automata/runner2.txt"
     automaton = read_automaton(file)
     config = ConfigurationAutomaton(config_init, automaton)
     print("Simulation :")
-    config.simulate_automaton(max_steps=1000, stop_on_transition=(0, 1, 0),
-                                  stop_on_stable=False)
+    config.simulate_automaton(step, transition, stable)
+
+import sys
 
 if __name__ == "__main__":
-    main()
+    fichier = sys.argv[1]
+    print(f"Lecture de l'automate cellulaire à partir de {fichier}")
+
+    step = sys.argv[2] if len(sys.argv) > 2 else None
+
+    transition = sys.argv[3] if len(sys.argv) > 3 else None
+    if transition is not None:
+        transition = int(transition)
+        transitions_map = {
+            0: (0, 0, 0),
+            1: (0, 1, 0),
+            2: (1, 0, 0),
+            3: (1, 1, 0),
+            4: (0, 0, 1),
+            5: (0, 1, 1),
+            6: (1, 0, 1),
+            7: (1, 1, 1),
+            8: None,
+        }
+        transition = transitions_map.get(transition, None)
+
+    stable = sys.argv[4] if len(sys.argv) > 4 else None
+    stable==0 if stable == "False" else 1
+
+    main(fichier, int(step), transition, stable)

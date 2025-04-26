@@ -13,6 +13,22 @@ Le projet inclut un fichier `Makefile` pour faciliter la compilation et l'exécu
 - `make zip` : Crée une archive ZIP du projet.
 - `make run`: Compile et exécute le projet.
 
+### Choix du modèle de calcul
+
+Lorsque vous exécutez `make` dans un terminal, le programme vous demandera de choisir le modèle de calcul à simuler :
+
+- **`0` : Automate cellulaire**
+    - Avant de lancer la simulation, vous devrez spécifier le fichier sur lequel elle doit s’exécuter. Le programme affichera une liste des fichiers disponibles pour vous aider à faire votre choix.
+    - Vous pourrez également configurer les paramètres de simulation suivants :
+        - **Nombre maximal d’étapes** : Définissez une limite pour le nombre d’itérations de la simulation.
+        - **Arrêt sur transition spécifique** : La simulation s’arrêtera si une transition particulière est rencontrée.
+        - **Arrêt sur configuration stable** : La simulation s’arrêtera automatiquement si aucune modification d’état n’est détectée entre deux étapes consécutives.
+- **`1` : Machine de Turing**
+    - Avant de lancer la simulation, vous devrez spécifier le fichier sur lequel elle doit s’exécuter. Le programme affichera une liste des fichiers disponibles pour vous aider à faire votre choix.
+    - Lance la simulation d’une machine de Turing.
+
+Ce choix permet de basculer facilement entre les deux modèles en fonction des besoins de l’utilisateur.
+
 Assurez-vous d'avoir `make` installé sur votre système pour utiliser ces commandes.
 
 ## Automate cellulaire
@@ -49,7 +65,7 @@ Grâce à la fonction `simulate_automaton`, il est possible de simuler l’évol
 
 Chaque étape est affichée dans le terminal, ce qui permet de suivre visuellement l’évolution de la configuration au fil du temps.
 
-## Fonctionnement
+### Fonctionnement
 
 - Simulation d’automates cellulaires à une dimension (ex : règle 110).
 - Initialisation de la configuration à partir d'une chaine de `0 et de 1`.
@@ -58,7 +74,7 @@ Chaque étape est affichée dans le terminal, ce qui permet de suivre visuelleme
 
 ## Machine de Turing
 
-Le but est de simuler une machine de Turing à un ruban sur un automate cellulaire.
+Le but est de simuler une machine de Turing de la même manière que pour un automate cellulaire. Les machines de Turing sont sur l'alphabet de travail ``
 
 ## Auteurs
 

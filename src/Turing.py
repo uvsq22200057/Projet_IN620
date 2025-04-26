@@ -137,15 +137,17 @@ def simulate_turing(machine: TuringMachine, word: str):
     else:
         print("Résultat : ACCEPT")
 
-def main():
+def main(file: str):
     """
     Exemple d'utilisation : lit une machine de Turing, simule sur un mot.
     """
     # Machine de Turing
-    file = "turing/example.txt"
     machine = read_turing(file)
     simulate_turing(machine, "1010")
 
+import sys
 
 if __name__ == "__main__":
-    main()
+    fichier = sys.argv[1]
+    print(f"Lecture de la machine de Turing à partir de {fichier}")
+    main(fichier)
