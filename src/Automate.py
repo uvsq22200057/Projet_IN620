@@ -117,13 +117,13 @@ def read_automaton(file: str) -> Automaton:
     return Automaton(transitions)
 
 def main(file: str, step: int = None, transition: Tuple[int, int, int] = None,
-         stable: bool = False) -> None:
+         stable: bool = False, config_init: List[int] = None) -> None:
     """
     Exemple d'utilisation : lit un automate, initialise une configuration,
     puis lance la simulation.
     """
     # Automate cellulaire
-    config_init = [1, 0, 0, 0, 0, 0, 0]
+    config_init = [1, 0, 0, 0, 0, 0, 0] if config_init is None else config_init
     automaton = read_automaton(file)
     config = ConfigurationAutomaton(config_init, automaton)
     print("Simulation :")
@@ -154,6 +154,9 @@ if __name__ == "__main__":
         transition = transitions_map.get(transition, None)
 
     stable = sys.argv[4] if len(sys.argv) > 4 else None
-    stable==0 if stable == "False" else 1
+    stable = False if stable == "0" else True
 
-    main(fichier, int(step), transition, stable)
+    config_init = sys.argv[5] if len(sys.argv) > 5 else None
+    config_init = [int(c) for c in config_init]
+    
+    main(fichier, int(step), transition, stable, config_init)

@@ -1,6 +1,8 @@
 # Makefile for running a Python script
 
 # Variables
+#SHELL := /bin/bash
+SHELL := bash
 PYTHON := python3
 SCRIPT_TURING := src/Turing.py
 SCRIPT_AUTOMATE := src/Automate.py
@@ -13,9 +15,14 @@ run:
 	@read choice; \
 	if [ $$choice = 0 ]; then \
 		echo "Fichiers disponibles dans automata/ :"; \
-		ls automata/*.txt | sed 's|automata/||g'; \
-		echo "Quel fichier voulez-vous utiliser ?"; \
-		read file; \
+		files=($$(ls automata/*.txt)); \
+		for i in $$(seq 0 $$(( $${#files[@]} - 1 ))); do \
+			name=$$(basename $${files[$$i]}); \
+			echo "[$$i] $$name"; \
+		done; \
+		echo "Tapez le numéro du fichier à utiliser :"; \
+		read index; \
+		file=$${files[$$index]}; \
 		echo "Quels modes voulez-vous utiliser pour arrêter le calcul ?"; \
 		echo "Nombre de pas de calcul (entre 1 et 1000)"; \
 		read steps; \
@@ -25,14 +32,23 @@ run:
 		read transition; \
 		echo "S'arrêter si le système est stable (0 pour False ou 1 pour True)"; \
 		read stable; \
-		echo "Votre choix : $$steps, $$transition, $$stable" ; \
-		$(PYTHON) $(SCRIPT_AUTOMATE) automata/$$file $$steps $$transition $$stable; \
+		echo "Sur quelle configuration initiale l'automate doit-il tourner ?"; \
+		read config; \
+		echo "Votre choix : $$steps, $$transition, $$stable, $$config" ; \
+		$(PYTHON) $(SCRIPT_AUTOMATE) $$file $$steps $$transition $$stable $$config; \
 	elif [ $$choice = 1 ]; then \
-		echo "Fichiers disponibles dans turing/ :"; \
-		ls turing/*.txt | sed 's|turing/||g'; \
-		echo "Quel fichier voulez-vous utiliser ?"; \
-		read file; \
-		$(PYTHON) $(SCRIPT_TURING) turing/$$file; \
+		echo "Fichiers disponibles dans automata/ :"; \
+		files=($$(ls turing/*.txt)); \
+		for i in $$(seq 0 $$(( $${#files[@]} - 1 ))); do \
+			name=$$(basename $${files[$$i]}); \
+			echo "[$$i] $$name"; \
+		done; \
+		echo "Tapez le numéro du fichier à utiliser :"; \
+		read index; \
+		file=$${files[$$index]}; \
+		echo "Sur quel mot la machine doit-elle tourner ?"; \
+		read word; \
+		$(PYTHON) $(SCRIPT_TURING) turing/$$file $$word; \
 	else \
 		echo "Choix invalide. Veuillez répondre 0 pour Automate cellulaire ou 1 pour Turing."; \
 fi; \
