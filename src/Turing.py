@@ -3,16 +3,13 @@ from typing import Dict, List, Tuple
 class TuringMachine:
     """
     Implémente une machine de Turing :
-    - alphabet : ensemble des symboles utilisés
     - transitions : dictionnaire {(état, symbole): (nouvel état, nouveau symbole, déplacement)}
     - initial_state : état initial
     - accept_states : ensemble des états d'acceptation
     - default : symbole par défaut pour les cases non initialisées du ruban
     """
-    def __init__(self, alphabet: set,
-                 transitions: Dict[Tuple[str, str], Tuple[str, str, str]],
+    def __init__(self, transitions: Dict[Tuple[str, str], Tuple[str, str, str]],
                  initial_state: str, accept_states: set, default_symbol: str = "-"):
-        self.alphabet = alphabet
         self.transitions = transitions
         self.initial_state = initial_state
         self.accept_states = accept_states
@@ -25,7 +22,6 @@ class TuringMachine:
         )
         return (
             f"Turing Machine:\n"
-            f"Alphabet: {', '.join(map(str, self.alphabet))}\n"
             f"Initial State: {self.initial_state}\n"
             f"Accept States: {', '.join(map(str, self.accept_states))}\n"
             f"Default Symbol: {self.default}\n"
@@ -132,8 +128,9 @@ def read_turing(file: str):
     """
     Lit un fichier de transitions et construit une machine de Turing.
     Format attendu :
-    - Lignes "accept qf ..." pour les états d'acceptation
     - Lignes "état,symbole : nouvel_état,nouveau_symbole,direction"
+    - Lignes "accept qf ..." pour les états d'acceptation
+    - La première ligne est l'état initial
     """
     transitions = {}
     initial_state = None
@@ -156,17 +153,15 @@ def read_turing(file: str):
 
             transitions[(state, symbol)] = (new_state, new_symbol, move)
 
-    return TuringMachine("", transitions, initial_state, accept_states)
+    return TuringMachine(transitions, initial_state, accept_states)
 
 def main(file: str, mot: str):
     """
-    Exemple d'utilisation : lit une machine de Turing, simule sur un mot.
+    Lit une machine de Turing puis simule sur un mot.
     """
-    # Machine de Turing
-    file = "turing/example.txt"
     machine = read_turing(file)
-    mot = "01"
     config = ConfigurationTuring(mot, 0, machine.initial_state, machine)
+
     print("Simulation :")
     config.simulate_turing(mot)
 

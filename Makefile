@@ -48,7 +48,7 @@ run:
 		file=$${files[$$index]}; \
 		echo "Sur quel mot la machine doit-elle tourner ?"; \
 		read word; \
-		$(PYTHON) $(SCRIPT_TURING) turing/$$file $$word; \
+		$(PYTHON) $(SCRIPT_TURING) $$file $$word; \
 	else \
 		echo "Choix invalide. Veuillez répondre 0 pour Automate cellulaire ou 1 pour Turing."; \
 fi; \

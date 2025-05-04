@@ -6,9 +6,10 @@ class Automaton:
     transitions : dictionnaire {(gauche, centre, droite): nouvel_etat}
     default_state : état utilisé pour les bords
     """
-    def __init__(self, transitions: Dict[tuple, int], default_state=-1):
+    def __init__(self, transitions: Dict[tuple, int], alphabet: List[int]=[0, 1], default_state=-1):
         self.transitions = transitions
         self.default_state = default_state
+        self.alphabet = alphabet
 
     def transition(self, left, center, right):
         """
@@ -16,6 +17,15 @@ class Automaton:
         Si la règle n'existe pas, retourne l'état par défaut.
         """
         return self.transitions.get((left, center, right), self.default_state)
+
+    def validate_alphabet(self):
+        """
+        Vérifie si les états de l'automate sont dans l'alphabet défini.
+        Lève une exception si un état n'est pas valide.
+        """
+        for state in self.transitions.keys():
+            if not all(s in self.alphabet for s in state):
+                raise ValueError(f"L'état {state} n'est pas dans l'alphabet {self.alphabet}")
 
 class ConfigurationAutomaton:
     """
@@ -45,11 +55,17 @@ class ConfigurationAutomaton:
         automaton = self.automaton
         default = automaton.default_state
 
+        states = [default] + states + [default]
+
         new = []
         used_transitions = []
         changed = False
 
         for i in range(len(states)):
+            # Vérifier si la cellule est dans l'alphabet
+            if states[i] not in automaton.alphabet:
+                raise ValueError(f"L'état {states[i]} n'est pas dans l'alphabet {automaton.alphabet}")
+
             # Récupère les états (gauche, centre, droite)
             left = states[i - 1] if i - 1 >= 0 else default
             center = states[i]
@@ -66,6 +82,12 @@ class ConfigurationAutomaton:
             # Enregistre la transition utilisée si elle existe
             if (left, center, right) in automaton.transitions:
                 used_transitions.append((left, center, right))
+
+        # On garde au maximum un seul 'default' à chaque bord
+        while len(new) > 2 and new[0] == default and new[1] == default:
+            new.pop(0)
+        while len(new) > 2 and new[-1] == default and new[-2] == default:
+            new.pop()
 
         self.states = new
         return new, changed, used_transitions
@@ -107,6 +129,7 @@ def read_automaton(file: str) -> Automaton:
     Lit un fichier de transitions et construit un Automaton.
     Format attendu par ligne : "gauche,centre,droite: nouvel_etat"
     """
+    alphabet = []
     transitions = {}
     with open(file, 'r') as f:
         for line in f:
@@ -114,7 +137,8 @@ def read_automaton(file: str) -> Automaton:
                 left, new_state = line.strip().split(":")
                 l, c, r = map(int, left.strip().split(","))
                 transitions[(l, c, r)] = int(new_state.strip())
-    return Automaton(transitions)
+    alphabet = list(set([l for l, c, r in transitions.keys()] + [c for l, c, r in transitions.keys()] + [r for l, c, r in transitions.keys()]))
+    return Automaton(transitions, alphabet)
 
 def main(file: str, step: int = None, transition: Tuple[int, int, int] = None,
          stable: bool = False, config_init: List[int] = None) -> None:
