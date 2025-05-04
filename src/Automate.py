@@ -7,7 +7,7 @@ class Automaton:
     transitions : dictionnaire {(gauche, centre, droite): nouvel_etat}
     default_state : état utilisé pour les bords
     """
-    def __init__(self, transitions: Dict[tuple, str], alphabet: List[str]=["0", "1"], default_state="-1"):
+    def __init__(self, transitions: Dict[tuple, str], alphabet: List[str]= None, default_state="-1"):
         self.transitions = transitions
         self.default_state = default_state
         self.alphabet = alphabet
@@ -17,7 +17,7 @@ class Automaton:
         Retourne le nouvel état selon la règle (left, center, right).
         Si la règle n'existe pas, retourne l'état par défaut.
         """
-        return self.transitions.get((left, center, right), self.default_state)
+        return self.transitions.get((left, center, right), center)
 
     def validate_alphabet(self):
         """
@@ -66,8 +66,9 @@ class ConfigurationAutomaton:
 
         for i in range(len(states)):
             # Vérifier si la cellule est dans l'alphabet
-            if states[i] not in automaton.alphabet:
-                raise ValueError(f"L'état {states[i]} n'est pas dans l'alphabet {automaton.alphabet}")
+            if automaton.alphabet is not None:
+                if states[i] not in automaton.alphabet:
+                    raise ValueError(f"L'état {states[i]} n'est pas dans l'alphabet {automaton.alphabet}")
 
             # Récupère les états (gauche, centre, droite)
             left = states[i - 1] if i - 1 >= 0 else default
