@@ -13,7 +13,12 @@ def read_word(word: str, initial_state: str) -> List[str]:
     word_list_turing = []
     for i in range(len(word)):
         if i == 0:
+            word_list_automate.append("-")
             word_list_automate.append(initial_state + word[i])
+            word_list_turing.append(word[i])
+        elif i == len(word) - 1:
+            word_list_automate.append("*" + word[i])
+            word_list_automate.append("-")
             word_list_turing.append(word[i])
         else:
             word_list_automate.append("*" + word[i])
@@ -41,27 +46,26 @@ def turing_to_automaton(file) -> A.Automaton:
                 initial_state = state
 
             if move == "S":
-                values = ["*0", "*1", "-1"]
+                values = ["*0", "*1", "-"]
                 for left in values:
                     for right in values:
-                        transitions[(left, state + symbol, right)] = str(new_state) + str(new_symbol)
+                        transitions[(left, state + symbol, right)] = new_state + new_symbol
             elif move == "R":
-                values = ["*0", "*1", "-1"]
+                values = ["*0", "*1", "-"]
                 center_values = ["*0", "*1"]
                 for left in values:
                     for center in center_values:
                         for right in values:
                             transitions[(left, state + symbol, right)] = "*" + new_symbol
-                            transitions[(state + symbol, center, right)] = new_state + new_symbol
+                            transitions[(state + symbol, center, right)] = new_state + center.replace("*", "")
             elif move == "L":
-                values = ["*0", "*1", "-1"]
+                values = ["*0", "*1", "-"]
                 center_values = ["*0", "*1"]
                 for left in values:
                     for center in center_values:
                         for right in values:
                             transitions[(left, state + symbol, right)] = "*" + new_symbol
-                            transitions[(left, center, state + symbol)] = new_state + new_symbol
-
+                            transitions[(left, center, state + symbol)] = new_state + center.replace("*", "")
     return A.Automaton(transitions), initial_state
 
 def main(file: str, mot: List[str]):
@@ -72,7 +76,7 @@ def main(file: str, mot: List[str]):
     word_automate, word_turing = read_word(mot, initial_state)
 
     A.ConfigurationAutomaton(word_automate, automaton).simulate_automaton(1000, stop_on_stable=True)
-    T.ConfigurationTuring(word_turing, machine = T.read_turing("./turing/test.txt"), state = initial_state, head = 0).simulate_turing()
+    T.ConfigurationTuring(word_turing, machine = T.read_turing(file), state = initial_state, head = 0).simulate_turing()
 
 
 if __name__ == "__main__":

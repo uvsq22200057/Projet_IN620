@@ -5,6 +5,7 @@ class Automaton:
     """ 
     Automate cellulaire : stocke les règles de transition et l'état par défaut.
     transitions : dictionnaire {(gauche, centre, droite): nouvel_etat}
+    alphabet : liste des états possibles (peut être None dans le cas de la simulation d'une Machine de Turing)
     default_state : état utilisé pour les bords
     """
     def __init__(self, transitions: Dict[tuple, str], alphabet: List[str]= None, default_state="-1"):
@@ -15,19 +16,10 @@ class Automaton:
     def transition(self, left, center, right):
         """
         Retourne le nouvel état selon la règle (left, center, right).
-        Si la règle n'existe pas, retourne l'état par défaut.
+        Si la règle n'existe pas, retourne l'état du centre.
         """
         return self.transitions.get((left, center, right), center)
-
-    def validate_alphabet(self):
-        """
-        Vérifie si les états de l'automate sont dans l'alphabet défini.
-        Lève une exception si un état n'est pas valide.
-        """
-        for state in self.transitions.keys():
-            if not all(s in self.alphabet for s in state):
-                raise ValueError(f"L'état {state} n'est pas dans l'alphabet {self.alphabet}")
-
+    
 class ConfigurationAutomaton:
     """
     Représente la configuration courante d'un automate cellulaire.
@@ -44,6 +36,10 @@ class ConfigurationAutomaton:
         self.states = states
         self.automaton = automaton
 
+    def __str__(self):
+        """ Affiche la configuration courante sous forme de chaîne d'états. """
+        return " ".join(str(s) for s in self.states)
+
     def next_step(self) -> Tuple[List[str], bool, List[Tuple[str, str, str]]]:
         """
         Calcule la configuration suivante.
@@ -57,8 +53,6 @@ class ConfigurationAutomaton:
         default = automaton.default_state
 
         states = [default] + states + [default]
-
-        states = [default] + states + [default]  # Ajoute les bords
 
         new = []
         used_transitions = []
@@ -96,10 +90,6 @@ class ConfigurationAutomaton:
         self.states = new
         return new, changed, used_transitions
 
-    def print_config(self):
-        """ Affiche la configuration courante sous forme de chaîne d'états. """
-        print(" ".join(str(s) for s in self.states))
-
     def simulate_automaton(self, max_steps: int = 1000,
                        stop_on_transition: Tuple[str, str, str] = None,
                        stop_on_stable: bool = False) -> None:
@@ -114,7 +104,7 @@ class ConfigurationAutomaton:
             else:    
                 print(f"Étape {step}:")
 
-            self.print_config()
+            print(self)
 
             _, changed, used_transitions = self.next_step()
 
