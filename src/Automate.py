@@ -1,3 +1,4 @@
+import sys
 from typing import Dict, List, Tuple
 
 class Automaton:
@@ -6,7 +7,7 @@ class Automaton:
     transitions : dictionnaire {(gauche, centre, droite): nouvel_etat}
     default_state : état utilisé pour les bords
     """
-    def __init__(self, transitions: Dict[tuple, int], alphabet: List[int]=[0, 1], default_state=-1):
+    def __init__(self, transitions: Dict[tuple, str], alphabet: List[str]=["0", "1"], default_state="-1"):
         self.transitions = transitions
         self.default_state = default_state
         self.alphabet = alphabet
@@ -33,7 +34,7 @@ class ConfigurationAutomaton:
     - states : liste des états des cellules
     - automaton : instance de Automaton contenant les règles
     """
-    def __init__(self, states: List[int], automaton: Automaton):
+    def __init__(self, states: List[str], automaton: Automaton):
         default = automaton.default_state
         # Ajoute les bords si besoin
         if states[0] != default:
@@ -43,7 +44,7 @@ class ConfigurationAutomaton:
         self.states = states
         self.automaton = automaton
 
-    def next_step(self) -> Tuple[List[int], bool, List[Tuple[int, int, int]]]:
+    def next_step(self) -> Tuple[List[str], bool, List[Tuple[str, str, str]]]:
         """
         Calcule la configuration suivante.
         Retourne :
@@ -56,6 +57,8 @@ class ConfigurationAutomaton:
         default = automaton.default_state
 
         states = [default] + states + [default]
+
+        states = [default] + states + [default]  # Ajoute les bords
 
         new = []
         used_transitions = []
@@ -97,7 +100,7 @@ class ConfigurationAutomaton:
         print(" ".join(str(s) for s in self.states))
 
     def simulate_automaton(self, max_steps: int = 1000,
-                       stop_on_transition: Tuple[int, int, int] = None,
+                       stop_on_transition: Tuple[str, str, str] = None,
                        stop_on_stable: bool = False) -> None:
         """
         Simule l'automate cellulaire pendant max_steps étapes.
@@ -129,31 +132,29 @@ def read_automaton(file: str) -> Automaton:
     Lit un fichier de transitions et construit un Automaton.
     Format attendu par ligne : "gauche,centre,droite: nouvel_etat"
     """
-    alphabet = []
     transitions = {}
     with open(file, 'r') as f:
         for line in f:
             if ":" in line:
                 left, new_state = line.strip().split(":")
-                l, c, r = map(int, left.strip().split(","))
-                transitions[(l, c, r)] = int(new_state.strip())
+                l, c, r = map(str, left.strip().split(","))
+                transitions[(l, c, r)] = str(new_state.strip())
     alphabet = list(set([l for l, c, r in transitions.keys()] + [c for l, c, r in transitions.keys()] + [r for l, c, r in transitions.keys()]))
     return Automaton(transitions, alphabet)
 
-def main(file: str, step: int = None, transition: Tuple[int, int, int] = None,
-         stable: bool = False, config_init: List[int] = None) -> None:
+def main(file: str, step: int = None, transition: Tuple[str, str, str] = None,
+         stable: bool = False, config_init: List[str] = None) -> None:
     """
-    Exemple d'utilisation : lit un automate, initialise une configuration,
+    Exemple d'utilisation: lit un automate, initialise une configuration,
     puis lance la simulation.
     """
     # Automate cellulaire
-    config_init = [1, 0, 0, 0, 0, 0, 0] if config_init is None else config_init
+    config_init = ["1", "0", "0", "0", "0", "0", "0"] if config_init is None else config_init
     automaton = read_automaton(file)
     config = ConfigurationAutomaton(config_init, automaton)
     print("Simulation :")
     config.simulate_automaton(step, transition, stable)
 
-import sys
 
 if __name__ == "__main__":
     fichier = sys.argv[1]
@@ -162,25 +163,13 @@ if __name__ == "__main__":
     step = sys.argv[2] if len(sys.argv) > 2 else None
 
     transition = sys.argv[3] if len(sys.argv) > 3 else None
-    if transition is not None:
-        transition = int(transition)
-        transitions_map = {
-            0: (0, 0, 0),
-            1: (0, 1, 0),
-            2: (1, 0, 0),
-            3: (1, 1, 0),
-            4: (0, 0, 1),
-            5: (0, 1, 1),
-            6: (1, 0, 1),
-            7: (1, 1, 1),
-            8: None,
-        }
-        transition = transitions_map.get(transition, None)
+    if transition:
+        transition = tuple(transition.split(","))
 
     stable = sys.argv[4] if len(sys.argv) > 4 else None
     stable = False if stable == "0" else True
 
     config_init = sys.argv[5] if len(sys.argv) > 5 else None
-    config_init = [int(c) for c in config_init]
+    config_init = [str(c) for c in config_init]
     
     main(fichier, int(step), transition, stable, config_init)

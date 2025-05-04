@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Set
 
 class TuringMachine:
     """
@@ -9,7 +9,7 @@ class TuringMachine:
     - default : symbole par défaut pour les cases non initialisées du ruban
     """
     def __init__(self, transitions: Dict[Tuple[str, str], Tuple[str, str, str]],
-                 initial_state: str, accept_states: set, default_symbol: str = "-"):
+                 initial_state: str, accept_states: Set[str], default_symbol: str = "-"):
         self.transitions = transitions
         self.initial_state = initial_state
         self.accept_states = accept_states
@@ -65,7 +65,7 @@ class ConfigurationTuring:
 
         # Lire le symbole sous la tête
         # Si la tête est en dehors du ruban, on utilise le symbole par défaut
-        symbol = self.tape[self.head] if 0 <= self.head < len(self.tape) else self.default
+        symbol = self.tape[self.head] if 0 <= self.head < len(self.tape) else machine.default
 
         if (self.state, symbol) not in machine.transitions:
             self.state = "REJECT"
@@ -74,55 +74,45 @@ class ConfigurationTuring:
         # Les changements
         new_state, new_symbol, move = machine.transitions[(self.state, symbol)]
 
-        # Ecrire le nouveau symbole sur le ruban
-        if 0 <= self.head < len(self.tape):
-            tape_list = list(self.tape)
-            tape_list[self.head] = new_symbol
-            self.tape = ''.join(tape_list)
-        else:
-            if self.head < 0:
-                self.tape.insert(0, new_symbol)
-                self.head = 0
-            else:
-                self.tape.append(new_symbol)
+        # Extend tape if necessary
+        if self.head < 0:
+            self.tape.insert(0, machine.default)
+            self.head = 0
+        elif self.head >= len(self.tape):
+            self.tape.append(machine.default)
 
-        # Déplacer la tête de lecture
+        self.tape[self.head] = new_symbol
+
+        # Move head
         if move == "R":
             self.head += 1
         elif move == "L":
             self.head -= 1
 
-        # Gérer les débordements du ruban
+        # Extend again if needed after move
         if self.head < 0:
-            self.tape.insert(0, self.default)
+            self.tape.insert(0, machine.default)
             self.head = 0
         elif self.head >= len(self.tape):
-            self.tape.append(self.default)
+            self.tape.append(machine.default)
 
         self.state = new_state
 
         return self
     
-    def simulate_turing(self, word: str):
+    def simulate_turing(self):
         """
         Simule la machine de Turing sur un mot donné.
         Affiche chaque configuration jusqu'à acceptation ou rejet.
         """
-        tape = list(word)
-        head = 0
-        state = self.machine.initial_state
-
         print("Début de la simulation :")
         print(self)
 
         while self.state != "REJECT" and not self.machine.is_accepting(self.state):
-            config = self.next_step()
+            self.next_step()
             print(self)
 
-        if self.state == "REJECT":
-            print("Résultat : REJECT")
-        else:
-            print("Résultat : ACCEPT")
+        print("Résultat :", "ACCEPT" if self.machine.is_accepting(self.state) else "REJECT")
 
 def read_turing(file: str):
     """
@@ -155,7 +145,7 @@ def read_turing(file: str):
 
     return TuringMachine(transitions, initial_state, accept_states)
 
-def main(file: str, mot: str):
+def main(file: str, mot: List[str]):
     """
     Lit une machine de Turing puis simule sur un mot.
     """
@@ -163,7 +153,7 @@ def main(file: str, mot: str):
     config = ConfigurationTuring(mot, 0, machine.initial_state, machine)
 
     print("Simulation :")
-    config.simulate_turing(mot)
+    config.simulate_turing()
 
 
 import sys
@@ -172,6 +162,6 @@ if __name__ == "__main__":
     fichier = sys.argv[1]
     print(f"Lecture de la machine de Turing à partir de {fichier}")
 
-    mot = sys.argv[2]
-    
+    mot = list(sys.argv[2]) if len(sys.argv) > 2 else list("")
+
     main(fichier, mot)
