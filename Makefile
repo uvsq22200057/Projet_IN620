@@ -6,12 +6,13 @@ SHELL := bash
 PYTHON := python3
 SCRIPT_TURING := src/Turing.py
 SCRIPT_AUTOMATE := src/Automate.py
+SCRIPT_SIMULATION := src/Simulation.py
 ZIP_FILE := ND_GAUTEUR_Mathilde-CRAMETTE_Noe.zip
 ZIP_DIR := ND_GAUTEUR_Mathilde-CRAMETTE_Noe
 
 # Default target
 run:
-	@echo "Quel programme voulez-vous lancer ? (0 pour Automate cellulaire ou 1 pour Turing)"
+	@echo "Quel programme voulez-vous lancer ? (0 pour Automate cellulaire, 1 pour Turing, 2 pour simuler un code Turing avec un automate cellulaire)"
 	@read choice; \
 	if [ $$choice = 0 ]; then \
 		echo "Fichiers disponibles dans automata/ :"; \
@@ -37,7 +38,7 @@ run:
 		echo "Votre choix : $$steps, $$transition, $$stable, $$config" ; \
 		$(PYTHON) $(SCRIPT_AUTOMATE) $$file $$steps $$transition $$stable $$config; \
 	elif [ $$choice = 1 ]; then \
-		echo "Fichiers disponibles dans automata/ :"; \
+		echo "Fichiers disponibles dans turing/ :"; \
 		files=($$(ls turing/*.txt)); \
 		for i in $$(seq 0 $$(( $${#files[@]} - 1 ))); do \
 			name=$$(basename $${files[$$i]}); \
@@ -49,8 +50,21 @@ run:
 		echo "Sur quel mot la machine doit-elle tourner ?"; \
 		read word; \
 		$(PYTHON) $(SCRIPT_TURING) $$file $$word; \
+	elif [ $$choice = 2 ]; then \
+		echo "Fichiers disponibles dans turing/ :"; \
+		files=($$(ls turing/*.txt)); \
+		for i in $$(seq 0 $$(( $${#files[@]} - 1 ))); do \
+			name=$$(basename $${files[$$i]}); \
+			echo "[$$i] $$name"; \
+		done; \
+		echo "Tapez le numéro du fichier à utiliser :"; \
+		read index; \
+		file=$${files[$$index]}; \
+		echo "Sur quel mot la machine doit-elle tourner ?"; \
+		read word; \
+		$(PYTHON) $(SCRIPT_SIMULATION) $$file $$word; \
 	else \
-		echo "Choix invalide. Veuillez répondre 0 pour Automate cellulaire ou 1 pour Turing."; \
+		echo "Choix invalide. Veuillez répondre 0 pour Automate cellulaire, 1 pour Turing ou 2 pour simuler Turing sur automate cellulaire."; \
 fi; \
 echo "Fin de l'exécution."
 
