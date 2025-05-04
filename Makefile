@@ -76,7 +76,12 @@ clean:
 zip: clean
 	@echo "Creating ZIP archive"
 	mkdir -p $(ZIP_DIR)
-	cp -r $(SCRIPT) Makefile README.MD automate.txt $(ZIP_DIR)/
+	cp -r src $(ZIP_DIR)/
+	cp -r automata $(ZIP_DIR)/
+	cp -r turing $(ZIP_DIR)/
+	cp -f README.md $(ZIP_DIR)/
+	cp -f IN620_DM_2025.pdf $(ZIP_DIR)/ 2>/dev/null || true
+	cp -f Makefile $(ZIP_DIR)/
 	zip -r $(ZIP_FILE) $(ZIP_DIR)
 	rm -rf $(ZIP_DIR)
 
