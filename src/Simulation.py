@@ -33,10 +33,12 @@ def turing_to_automaton(file) -> (A.Automaton, str):
     with open(file, 'r') as f:
         transitions = {}
         initial_state = None
+        final = []
 
         lines = [line.strip() for line in f if line.strip()]
         for line in lines:
             if line.startswith("accept"):
+                final.append(line.split(maxsplit=1)[1].strip())
                 continue
             left, right = [part.strip() for part in line.split(":")]
             state, symbol = [x.strip() for x in left.split(",")]
@@ -45,28 +47,40 @@ def turing_to_automaton(file) -> (A.Automaton, str):
             if initial_state is None:
                 initial_state = state
 
+            values = ["*0", "*1", "-", "*-"]
+            center_values = ["*0", "*1"]
+
             if move == "S":
-                values = ["*0", "*1", "-"]
                 for left in values:
                     for right in values:
-                        transitions[(left, state + symbol, right)] = new_state + new_symbol
+                        if str(new_state) in final:
+                            transitions[(left, state + symbol, right)] = "*" + new_symbol
+                        else:
+                            transitions[(left, state + symbol, right)] = new_state + new_symbol
+
             elif move == "R":
-                values = ["*0", "*1", "-"]
-                center_values = ["*0", "*1"]
                 for left in values:
                     for center in center_values:
                         for right in values:
                             transitions[(left, state + symbol, right)] = "*" + new_symbol
-                            transitions[(state + symbol, center, right)] = new_state + center.replace("*", "")
+                            transitions[(state + symbol, center, right)] = new_state + center[1]
+                            transitions[(state + symbol, "-", "-1")] = new_state + "-"
+                            transitions[(left, state + symbol, "-1")] = "*" + new_symbol
+                            transitions[("-1", state + symbol, right)] = "*" + new_symbol
+
             elif move == "L":
-                values = ["*0", "*1", "-"]
-                center_values = ["*0", "*1"]
                 for left in values:
                     for center in center_values:
                         for right in values:
                             transitions[(left, state + symbol, right)] = "*" + new_symbol
-                            transitions[(left, center, state + symbol)] = new_state + center.replace("*", "")
+                            transitions[(left, center, state + symbol)] = new_state + center[1]
+                            transitions[("-1", "-", state + symbol)] = new_state + "-"
+                            transitions[("-1", state + symbol, right)] = "*" + new_symbol
+                            transitions[(left, state + symbol, "-1")] = "*" + new_symbol
+
+
     return A.Automaton(transitions), initial_state
+
 
 def main(file: str, mot: str):
     """
@@ -75,7 +89,7 @@ def main(file: str, mot: str):
     automaton, initial_state = turing_to_automaton(file)
     word_automate, word_turing = read_word(mot, initial_state)
 
-    A.ConfigurationAutomaton(word_automate, automaton).simulate_automaton(1000, stop_on_stable=True)
+    A.ConfigurationAutomaton(word_automate, automaton).simulate_automaton(20, stop_on_stable=True)
     T.ConfigurationTuring(word_turing, machine = T.read_turing(file), state = initial_state, head = 0).simulate_turing()
 
 
