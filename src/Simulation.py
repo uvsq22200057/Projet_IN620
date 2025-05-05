@@ -4,7 +4,7 @@ from typing import List
 import Automate as A
 import Turing as T
 
-def read_word(word: str, initial_state: str) -> List[str]:
+def read_word(word: str, initial_state: str) -> (List[str], List[str]):
     """
     Lit un mot et le convertit en une liste de caractères avec une * devant.
     Le premier caractère est précédé de l'état initial.
@@ -25,11 +25,11 @@ def read_word(word: str, initial_state: str) -> List[str]:
             word_list_turing.append(word[i])
     return word_list_automate, word_list_turing
 
-def turing_to_automaton(file) -> A.Automaton:
-    '''   
+def turing_to_automaton(file) -> (A.Automaton, str):
+    """
     Lit un fichier de transitions Turing et construit un automate cellulaire.
     Format attendu : chaque ligne doit être au format "état,symbole : nouvel_état,nouveau_symbole,mouvement"
-    '''
+    """
     with open(file, 'r') as f:
         transitions = {}
         initial_state = None
@@ -68,7 +68,7 @@ def turing_to_automaton(file) -> A.Automaton:
                             transitions[(left, center, state + symbol)] = new_state + center.replace("*", "")
     return A.Automaton(transitions), initial_state
 
-def main(file: str, mot: List[str]):
+def main(file: str, mot: str):
     """
     Lit une machine de Turing puis simule un mot sur un automate cellulaire.
     """
@@ -83,6 +83,6 @@ if __name__ == "__main__":
     fichier = sys.argv[1]
     print(f"Lecture de la machine de Turing à partir de {fichier}")
 
-    mot = list(sys.argv[2]) if len(sys.argv) > 2 else list("")
+    mot = sys.argv[2] if len(sys.argv) > 2 else ""
 
     main(fichier, mot)
