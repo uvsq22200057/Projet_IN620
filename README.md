@@ -98,10 +98,9 @@ Nous définissons une machine de Turing comme tel :
 - **un état d'acceptation**
 - **l'état de défaut de la bande** : permet de représenter une cellule vide
 
-La première ligne d'un fichier contenant le code d'une machine de Turing représente l'état initial.
+La première ligne d'un fichier contenant le code d'une machine de Turing représente l'état acceptant : exemple `accept qf`
 
-En fin de fichier on ajoute des informations utiles
-- l'état acceptant : exemple `accept qf`
+La première ligne d'une transition représente l'état initial.
 
 ### Configuration d'une machine de Turing
 La configuration d'une machine de Turing est représentée par une liste de cellules, où chaque cellule peut contenir un symbole de l'alphabet de bande. 
@@ -117,7 +116,7 @@ Grâce à la fonction `simulate_turing`, il est possible de simuler l’évoluti
 ### Exemples de machines de Turing
 Voici quelques exemples de machines de Turing que vous pouvez simuler :
 1. **_binary_addition_** : Une machine de Turing qui effectue l'addition binaire. Exemple : `000 => 001`, `001 => 010`, `010 => 011`, `011 => 100`, `100 => 101`, `101 => 110`, `110 => 111`, `111 => 1000`.
-2. **_decrement_** : Une machine de Turing qui décrémente un nombre binaire. Exemple : `000 => 111`, `001 => 000`, `010 => 001`, `011 => 010`, `100 => 011`, `101 => 100`, `110 => 101`, `111 => 110`.
+2. **_subtract_binary_** : Une machine de Turing qui soustrait 1 à un nombre binaire. Exemple : `000 => 111`, `001 => 000`, `010 => 001`, `011 => 010`, `100 => 011`, `101 => 100`, `110 => 101`, `111 => 110`.
 
 ## Simulation d'une machine de Turing sur un automate cellulaire
 
@@ -144,9 +143,8 @@ La simulation d'une machine de Turing sur un automate cellulaire est réalisée 
 
 ### Exemples de simulation
 Voici quelques exemples de simulation d'une machine de Turing sur un automate cellulaire :
-1. **_simulation_1_** : Description de la première simulation.
-2. **_simulation_2_** : Description de la deuxième simulation.
-3. **_simulation_3_** : Description de la troisième simulation.
+1. **_+1_en binaire_**
+2. **_-1 en binaire_** 
 
 ## Auteurs
 
